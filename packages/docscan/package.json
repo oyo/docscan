@@ -1,0 +1,43 @@
+{
+  "name": "docscan",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Detect and extract documents in images",
+  "homepage": "https://oyo.github.io/docscan",
+  "bugs": {
+    "url": "https://github.com/author/library/issues"
+  },
+  "license": "MIT",
+  "author": "Martin Rohrmeier <royphant@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oyo/docscan.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp run build"
+  },
+  "dependencies": {
+    "@opencvjs/web": "catalog:",
+    "tesseract.js": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vite-plus": "catalog:"
+  }
+}

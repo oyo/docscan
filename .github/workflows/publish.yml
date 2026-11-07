@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+name: release
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Get NPM tag
+        id: npm_tag
+        run: echo "current_version=$(cat packages/*/package.json | grep "version" | head -1 | cut -d '"' -f4)" >> $GITHUB_OUTPUT
+
+      - name: Check if tags match
+        if: ${{ github.ref_name != steps.npm_tag.outputs.current_version }}
+        run: echo "GIT ${{ github.ref_name }} != NPM ${{ steps.npm_tag.outputs.current_version }}" && exit 1
+
+      - uses: voidzero-dev/setup-vp@v1.21.2
+        with:
+          node-version: '24'
+          cache: true
+          run-install: true
+
+      - name: Build library
+        working-directory: ./packages/docscan
+        run: vp pack
+
+      - name: Build webapp
+        working-directory: ./apps/website
+        run: vp run build
+
+      - name: setup pages
+        uses: actions/configure-pages@v5
+
+      - name: upload webapp
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './apps/website/dist'
+
+      - name: deploy to GitHub pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Publish library to NPM
+        working-directory: ./packages/docscan
+        run: npm publish --provenance --access public
